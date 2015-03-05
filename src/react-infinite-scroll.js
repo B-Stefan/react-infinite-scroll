@@ -33,7 +33,7 @@ module.exports = function (React) {
     scrollListener: function () {
       var el = this.getDOMNode();
       var scrollTop = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
-      if (topPosition(el) + el.offsetHeight - scrollTop - window.innerHeight < Number(this.props.threshold)) {
+      if (el.parentNode.clientHeight + (topPosition(el) + el.offsetHeight - scrollTop - window.innerHeight) < Number(this.props.threshold)) {
         this.detachScrollListener();
         // call loadMore after detachScrollListener to allow
         // for non-async loadMore functions
