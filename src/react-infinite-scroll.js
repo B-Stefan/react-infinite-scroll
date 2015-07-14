@@ -16,7 +16,8 @@ module.exports = function (React) {
         pageStart: 0,
         hasMore: false,
         loadMore: function () {},
-        threshold: 250
+        threshold: 250,
+        async: false
       };
     },
     componentDidMount: function () {
@@ -32,16 +33,31 @@ module.exports = function (React) {
     },
     scrollListener: function () {
       var el = this.getDOMNode();
+      var self = this;
+      var listHeight = $(el).parent().parent().height();
       var scrollTop = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
-      if (el.parentNode.clientHeight + (topPosition(el) + el.offsetHeight - scrollTop - window.innerHeight) < Number(this.props.threshold)) {
+      var offsetBottom = Math.abs(el.parentNode.clientHeight + (topPosition(el) + el.offsetHeight - scrollTop - window.innerHeight))
+
+      if ( listHeight - scrollTop < Number(this.props.threshold)) {
         this.detachScrollListener();
+        console.log(el.parentNode.clientHeight + (topPosition(el) + el.offsetHeight - scrollTop - window.innerHeight))
         // call loadMore after detachScrollListener to allow
         // for non-async loadMore functions
-        this.props.loadMore(this.pageLoaded += 1);
+        var resulst = this.props.loadMore(this.pageLoaded += 1);
+        if(resulst != undefined){
+          if(resulst.then != undefined){
+            this.props.async = true;
+            resulst.then(function(){
+              self.props.async= false;
+              self.attachScrollListener();
+
+            })
+          }
+        }
       }
     },
     attachScrollListener: function () {
-      if (!this.props.hasMore) {
+      if (!this.props.hasMore ||  this.props.async) {
         return;
       }
       window.addEventListener('scroll', this.scrollListener);
